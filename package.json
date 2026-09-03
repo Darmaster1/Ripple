@@ -1,0 +1,22 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "build": "npm run typecheck && npm run build --workspaces --if-present",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "npm run typecheck:libs && npm run typecheck --workspaces --if-present",
+    "dev": "concurrently \"npm run dev --workspace=@workspace/api-server\" \"npm run dev --workspace=@workspace/ripple\""
+  },
+  "private": true,
+  "workspaces": [
+    "artifacts/*",
+    "lib/*",
+    "scripts"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.9.6",
+    "typescript": "~5.9.3"
+  }
+}

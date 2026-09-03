@@ -1,0 +1,433 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: RIPPLE urban infrastructure resilience digital twin API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: twin
+    description: Digital twin data
+  - name: simulation
+    description: Deterministic cascade simulation
+  - name: planning
+    description: Resilience planning tools
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /study-area:
+    get:
+      operationId: getStudyArea
+      tags: [twin]
+      summary: Get the configured study area
+      responses:
+        "200":
+          description: Study area and dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyArea"
+  /twin:
+    get:
+      operationId: getTwin
+      tags: [twin]
+      summary: Get the geographic and dependency twin
+      responses:
+        "200":
+          description: Twin layers and assets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwinData"
+  /assets:
+    get:
+      operationId: listAssets
+      tags: [twin]
+      summary: List infrastructure assets
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Asset"
+  /assets/{assetId}:
+    get:
+      operationId: getAsset
+      tags: [twin]
+      summary: Get an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+        "404":
+          description: Asset not found
+  /dependencies/{assetId}:
+    get:
+      operationId: getDependencies
+      tags: [twin]
+      summary: Get dependencies for an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dependency graph around an asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DependencyGraph"
+  /criticality:
+    get:
+      operationId: listCriticality
+      tags: [simulation]
+      summary: Get ranked asset criticality
+      responses:
+        "200":
+          description: Criticality ranking
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Criticality"
+  /simulations:
+    post:
+      operationId: createSimulation
+      tags: [simulation]
+      summary: Run a deterministic cascade simulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationInput"
+      responses:
+        "200":
+          description: Simulation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResult"
+  /optimize:
+    post:
+      operationId: optimizeResilience
+      tags: [planning]
+      summary: Optimize interventions under a budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptimizeInput"
+      responses:
+        "200":
+          description: Recommended resilience plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimizationResult"
+  /copilot:
+    post:
+      operationId: askCopilot
+      tags: [planning]
+      summary: Interpret a natural language resilience question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopilotInput"
+      responses:
+        "200":
+          description: Structured answer grounded in simulation data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CopilotResult"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Provenance:
+      type: object
+      required: [source, data_type, confidence]
+      properties:
+        source:
+          type: string
+        data_type:
+          type: string
+        confidence:
+          type: string
+    StudyArea:
+      type: object
+      required: [name, city, state, country, bounds, metrics]
+      properties:
+        name: { type: string }
+        city: { type: string }
+        state: { type: string }
+        country: { type: string }
+        bounds:
+          type: object
+          required: [min_lat, max_lat, min_lon, max_lon]
+          properties:
+            min_lat: { type: number }
+            max_lat: { type: number }
+            min_lon: { type: number }
+            max_lon: { type: number }
+        metrics:
+          $ref: "#/components/schemas/DashboardMetrics"
+    DashboardMetrics:
+      type: object
+      required: [power, water, roads, telecom, population, assets, buildings, roads_count]
+      properties:
+        power: { type: integer }
+        water: { type: integer }
+        roads: { type: integer }
+        telecom: { type: integer }
+        population: { type: integer }
+        assets: { type: integer }
+        buildings: { type: integer }
+        roads_count: { type: integer }
+    Point:
+      type: object
+      required: [lat, lon]
+      properties:
+        lat: { type: number }
+        lon: { type: number }
+    Asset:
+      type: object
+      required: [id, type, name, location, capacity, importance, status, criticality, dependencies, provenance]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        name: { type: string }
+        location:
+          $ref: "#/components/schemas/Point"
+        capacity: { type: string }
+        importance: { type: integer }
+        status: { type: string }
+        criticality: { type: integer }
+        dependencies: { type: integer }
+        provenance:
+          $ref: "#/components/schemas/Provenance"
+    Building:
+      type: object
+      required: [id, building_type, centroid, area_m2, levels, height, provenance]
+      properties:
+        id: { type: string }
+        building_type: { type: string }
+        centroid:
+          $ref: "#/components/schemas/Point"
+        area_m2: { type: number }
+        levels: { type: integer }
+        height: { type: number }
+        provenance:
+          $ref: "#/components/schemas/Provenance"
+    Road:
+      type: object
+      required: [id, name, road_type, geometry, length_m, provenance]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        road_type: { type: string }
+        geometry:
+          type: array
+          items:
+            $ref: "#/components/schemas/Point"
+        length_m: { type: number }
+        provenance:
+          $ref: "#/components/schemas/Provenance"
+    Dependency:
+      type: object
+      required: [source_id, target_id, dependency_type, strength, threshold, confidence]
+      properties:
+        source_id: { type: string }
+        target_id: { type: string }
+        dependency_type: { type: string }
+        strength: { type: number }
+        threshold: { type: number }
+        confidence: { type: string }
+    DependencyGraph:
+      type: object
+      required: [nodes, edges]
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Dependency"
+    TwinData:
+      type: object
+      required: [buildings, roads, assets, dependencies]
+      properties:
+        buildings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Building"
+        roads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Road"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        dependencies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Dependency"
+    SimulationInput:
+      type: object
+      required: [asset_id, action]
+      properties:
+        asset_id: { type: string }
+        action:
+          type: string
+          enum: [FAIL, DEGRADE, DISCONNECT]
+        duration_minutes: { type: integer }
+        interventions:
+          type: array
+          items: { type: string }
+    TimelineEvent:
+      type: object
+      required: [time, label, detail, asset_id, state]
+      properties:
+        time: { type: integer }
+        label: { type: string }
+        detail: { type: string }
+        asset_id: { type: string }
+        state: { type: string }
+    ImpactMetrics:
+      type: object
+      required: [population_affected, assets_affected, failed_assets, degraded_assets, critical_services, cascade_depth, area_affected_km2, roads_affected, buildings_affected, dependency_edges_affected]
+      properties:
+        population_affected: { type: integer }
+        assets_affected: { type: integer }
+        failed_assets: { type: integer }
+        degraded_assets: { type: integer }
+        critical_services: { type: integer }
+        cascade_depth: { type: integer }
+        area_affected_km2: { type: number }
+        roads_affected: { type: integer }
+        buildings_affected: { type: integer }
+        dependency_edges_affected: { type: integer }
+    SimulationResult:
+      type: object
+      required: [id, scenario, source_asset_id, impact, timeline, affected_asset_ids, explanation]
+      properties:
+        id: { type: string }
+        scenario: { type: string }
+        source_asset_id: { type: string }
+        impact:
+          $ref: "#/components/schemas/ImpactMetrics"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimelineEvent"
+        affected_asset_ids:
+          type: array
+          items: { type: string }
+        explanation: { type: string }
+    Criticality:
+      type: object
+      required: [asset_id, name, type, score, reasons]
+      properties:
+        asset_id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        score: { type: integer }
+        reasons:
+          type: array
+          items: { type: string }
+    OptimizeInput:
+      type: object
+      required: [budget_crore]
+      properties:
+        budget_crore: { type: number, minimum: 0 }
+    Intervention:
+      type: object
+      required: [id, name, cost_crore, target, impact_reduction, implementation_time, rationale]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        cost_crore: { type: number }
+        target: { type: string }
+        impact_reduction: { type: integer }
+        implementation_time: { type: string }
+        rationale: { type: string }
+    OptimizationResult:
+      type: object
+      required: [budget_crore, total_cost_crore, estimated_impact_reduction, interventions, method]
+      properties:
+        budget_crore: { type: number }
+        total_cost_crore: { type: number }
+        estimated_impact_reduction: { type: integer }
+        interventions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Intervention"
+        method: { type: string }
+    CopilotInput:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, minLength: 1 }
+    CopilotResult:
+      type: object
+      required: [answer, intent, simulation]
+      properties:
+        answer: { type: string }
+        intent: { type: string }
+        simulation:
+          type: ["object", "null"]
+          additionalProperties: true
+

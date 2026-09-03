@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "RIPPLE — Bengaluru Resilience Twin"
+description = "An interactive urban infrastructure resilience digital twin for a real Bengaluru study area. Explore assets, simulate cascading failures, compare interventions, and optimize resilience investments."
+version = "1.0.0"
+id = "artifacts/ripple"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21551
+
+[services.development]
+run = "pnpm --filter @workspace/ripple run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ripple", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ripple/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21551"
+BASE_PATH = "/"

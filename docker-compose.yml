@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ripple
+      POSTGRES_USER: ripple
+      POSTGRES_PASSWORD: ripple
+    ports:
+      - "5432:5432"
+    volumes:
+      - ripple-postgres:/var/lib/postgresql/data
+
+volumes:
+  ripple-postgres:
