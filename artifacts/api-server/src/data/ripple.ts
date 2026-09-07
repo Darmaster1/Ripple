@@ -26,7 +26,7 @@ export const studyArea: StudyArea = {
     water: 94,
     roads: 91,
     telecom: 99,
-    population: 18400,
+    population: 245000,
     assets: 18,
     buildings: 1284,
     roads_count: 42,
@@ -116,21 +116,23 @@ export function metricsForAction(action: string, sourceId: string, selectedInter
   const source = assetById(sourceId);
   const multiplier = action === "FAIL" ? 1.0 : action === "DEGRADE" ? 0.65 : 0.45;
   const reduction = selectedInterventions.reduce((sum, id) => sum + (interventions.find((item) => item.id === id)?.impact_reduction ?? 0), 0);
-  const factor = Math.max(0.1, multiplier * (1 - Math.min(reduction, 65) / 100));
+  const factor = Math.max(0.05, multiplier * (1 - Math.min(reduction, 65) / 100));
   
-  // Custom reach weight based on actual downstream dependency depth & count
-  const direct = source?.id === "POWER-S1" ? 0.95 
-    : source?.id === "WATER-P1" ? 0.75 
-    : source?.id === "HOSP-H1" ? 0.85 
-    : source?.id === "BRIDGE-B1" ? 0.65 
-    : source?.id === "TEL-T4" ? 0.55 
-    : source?.id === "POWER-T2" ? 0.50 
-    : source?.id === "WATER-N1" ? 0.60 
-    : 0.30;
+  // Dynamic reach weight based on node centrality across 245,000 residents extent
+  const direct = source?.id === "POWER-S1" ? 0.88 
+    : source?.id === "WATER-P1" ? 0.52 
+    : source?.id === "HOSP-H1" ? 0.45 
+    : source?.id === "BRIDGE-B1" ? 0.32 
+    : source?.id === "TEL-T4" ? 0.28 
+    : source?.id === "POWER-T2" ? 0.22 
+    : source?.id === "WATER-N1" ? 0.38 
+    : source?.id === "FIRE-F1" ? 0.15
+    : source?.id === "POLICE-P2" ? 0.12
+    : 0.10;
 
   const impact = factor * direct;
   return {
-    population_affected: Math.round(18400 * impact),
+    population_affected: Math.round(245000 * impact),
     assets_affected: Math.max(1, Math.round(10 * impact)),
     failed_assets: Math.max(1, Math.round(5 * impact)),
     degraded_assets: Math.max(0, Math.round(4 * impact)),

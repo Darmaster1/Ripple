@@ -280,10 +280,10 @@ function addCustomLayers(map: maplibregl.Map, buildings: any[], roads: any[]) {
     map.addSource('buildings-data', { type: 'geojson', data: buildingsToGeoJSON(completeBuildings(buildings, roads)) });
     map.addLayer({
       id: 'building-footprints',
-      type: 'fill',
+      type: 'fill-extrusion',
       source: 'buildings-data',
       paint: {
-        'fill-color': [
+        'fill-extrusion-color': [
           'match', ['get', 'type'],
           'HEALTHCARE', '#ef4444',
           'COMMERCIAL', '#3b82f6',
@@ -291,8 +291,9 @@ function addCustomLayers(map: maplibregl.Map, buildings: any[], roads: any[]) {
           'MIXED_USE', '#8b5cf6',
           '#64748b',
         ],
-        'fill-opacity': 0.8,
-        'fill-outline-color': '#475569',
+        'fill-extrusion-height': ['get', 'height'],
+        'fill-extrusion-base': ['get', 'base_height'],
+        'fill-extrusion-opacity': 0.85,
       },
     }, map.getLayer('roads-casing') ? 'roads-casing' : beforeId);
   } else {
@@ -331,6 +332,9 @@ export function RippleMap({ assets = [], selected, onSelect, cascade = false }: 
       style: fallbackRasterStyle(),
       center: MAP_CENTER,
       zoom: MAP_ZOOM,
+      pitch: 52,
+      bearing: -15,
+      maxPitch: 85,
       touchZoomRotate: true,
       scrollZoom: true,
       boxZoom: true,

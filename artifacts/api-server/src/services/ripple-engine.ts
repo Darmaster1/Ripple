@@ -34,11 +34,18 @@ function calculateWholeTwinImpact(
   
   const buildingPop = affectedBuildings.reduce((sum, building) => sum + buildingPopulation(building), 0);
   const directAsset = affectedAssets[0];
-  const capacityPop = directAsset ? (directAsset.type === "POWER_SUBSTATION" ? 14200 : directAsset.type === "HOSPITAL" ? 9500 : directAsset.type === "WATER_PUMP" ? 7800 : directAsset.type === "BRIDGE" ? 6400 : directAsset.type === "TELECOM_TOWER" ? 5100 : 2200) : 1500;
+  const capacityPop = directAsset ? (
+    directAsset.type === "POWER_SUBSTATION" ? 215000 : 
+    directAsset.type === "WATER_PUMP" ? 127000 : 
+    directAsset.type === "HOSPITAL" ? 110000 : 
+    directAsset.type === "WATER_NODE" ? 93000 : 
+    directAsset.type === "BRIDGE" ? 78000 : 
+    directAsset.type === "TELECOM_TOWER" ? 68000 : 
+    directAsset.type === "TRAFFIC_SIGNAL" ? 42000 : 
+    directAsset.type === "FIRE_STATION" ? 36000 : 
+    directAsset.type === "POLICE_STATION" ? 29000 : 25000
+  ) : 20000;
   
-  // Cap population at study area total (18400)
-  const calculatedPopulation = Math.round(Math.min(18400, Math.max(buildingPop, capacityPop * (affectedAssets.length / Math.max(1, assets.length)) * (1.2 + events.length * 0.1))));
-
   const failedAssets = events.filter((event: SimulationResult["timeline"][number]) => event.state === "FAILED").length;
   const degradedAssets = events.filter((event: SimulationResult["timeline"][number]) => event.state === "DEGRADED").length;
   const criticalServices = affectedAssets.filter((asset) => ["HOSPITAL", "FIRE_STATION", "POLICE_STATION", "WATER_PUMP", "WATER_NODE"].includes(asset.type)).length;
@@ -46,7 +53,6 @@ function calculateWholeTwinImpact(
 
   return {
     ...baseImpact,
-    population_affected: calculatedPopulation,
     assets_affected: affectedAssets.length,
     failed_assets: Math.max(1, failedAssets),
     degraded_assets: degradedAssets,
