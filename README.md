@@ -6,18 +6,22 @@ RIPPLE lets city administrators and emergency planners **break** a digital versi
 
 ---
 
-## 🚀 One-Click Local Setup (Windows / npm)
+## 🚀 One-Click Local Setup (Windows & macOS)
 
-RIPPLE is fully converted to run on standard `npm` without `pnpm` constraints.
+RIPPLE runs cross-platform using standard Node.js and `npm`.
 
-### 1. Launch automatically (Recommended)
-Double-click **[`start-ripple.bat`](file:///c:/Users/mohni/Downloads/Project%20Moneypal/ripple-bengaluru-resilience-twin/start-ripple.bat)** in the root folder. It will:
-1. Verify node dependencies (`npm install --legacy-peer-deps` if needed).
-2. Start the Express API server on `http://localhost:3001`.
-3. Start the Vite React Web Command Center on `http://localhost:5173`.
-4. Automatically open your web browser directly to the dashboard.
+### 🪟 On Windows
+Double-click **[`start-ripple.bat`](file:///c:/Users/mohni/Downloads/Project%20Moneypal/ripple-bengaluru-resilience-twin/start-ripple.bat)** in the project root folder.
 
-### 2. Manual Command Line Startup
+### 🍎 On macOS / Linux
+Open Terminal, navigate to the folder, and run:
+```bash
+chmod +x start-ripple.sh
+./start-ripple.sh
+```
+This executable script automatically verifies dependencies, launches both backend and frontend servers, and opens `http://localhost:5173` in Safari/Chrome.
+
+### 💻 Manual Command Line Startup (Any OS)
 ```bash
 # Install monorepo dependencies
 npm install --legacy-peer-deps
